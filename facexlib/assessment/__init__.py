@@ -14,7 +14,8 @@ def init_assessment_model(model_name, half=False, device='cuda', model_rootpath=
     # load the pre-trained hypernet model
     hypernet_model_path = load_file_from_url(
         url=model_url, model_dir='facexlib/weights', progress=True, file_name=None, save_dir=model_rootpath)
-    model.hypernet.load_state_dict((torch.load(hypernet_model_path, map_location=lambda storage, loc: storage)))
+    # Load directly to target device
+    model.hypernet.load_state_dict(torch.load(hypernet_model_path, map_location=device))
     model = model.eval()
     model = model.to(device)
     return model

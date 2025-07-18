@@ -15,7 +15,8 @@ def init_matting_model(model_name='modnet', half=False, device='cuda', model_roo
     model_path = load_file_from_url(
         url=model_url, model_dir='facexlib/weights', progress=True, file_name=None, save_dir=model_rootpath)
     # TODO: clean pretrained model
-    load_net = torch.load(model_path, map_location=lambda storage, loc: storage)
+    # Load directly to target device
+    load_net = torch.load(model_path, map_location=device)
     # remove unnecessary 'module.'
     for k, v in deepcopy(load_net).items():
         if k.startswith('module.'):
