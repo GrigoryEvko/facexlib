@@ -1,5 +1,4 @@
 import torch
-from copy import deepcopy
 
 from facexlib.utils import load_file_from_url
 from .modnet import MODNet
@@ -14,14 +13,11 @@ def init_matting_model(model_name='modnet', half=False, device='cuda', model_roo
 
     model_path = load_file_from_url(
         url=model_url, model_dir='facexlib/weights', progress=True, file_name=None, save_dir=model_rootpath)
-    # TODO: clean pretrained model
-    # Load directly to target device
-    load_net = torch.load(model_path, map_location=device)
-    # remove unnecessary 'module.'
-    for k, v in deepcopy(load_net).items():
+    load_net = torch.load(model_path, map_location=device, weights_only=True)
+    # Remove unnecessary 'module.' prefix in-place (no deepcopy)
+    for k in list(load_net.keys()):
         if k.startswith('module.'):
-            load_net[k[7:]] = v
-            load_net.pop(k)
+            load_net[k[7:]] = load_net.pop(k)
     model.load_state_dict(load_net, strict=True)
     model.eval()
     model = model.to(device)
