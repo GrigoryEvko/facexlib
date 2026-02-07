@@ -1,5 +1,4 @@
 import torch
-from copy import deepcopy
 
 from facexlib.utils import load_file_from_url
 from .retinaface import RetinaFace
@@ -18,14 +17,11 @@ def init_detection_model(model_name, half=False, device='cuda', model_rootpath=N
     model_path = load_file_from_url(
         url=model_url, model_dir='facexlib/weights', progress=True, file_name=None, save_dir=model_rootpath)
 
-    # TODO: clean pretrained model
-    # Load directly to target device
-    load_net = torch.load(model_path, map_location=device)
-    # remove unnecessary 'module.'
-    for k, v in deepcopy(load_net).items():
+    load_net = torch.load(model_path, map_location=device, weights_only=True)
+    # In-place rename: strip 'module.' prefix without deepcopy
+    for k in list(load_net.keys()):
         if k.startswith('module.'):
-            load_net[k[7:]] = v
-            load_net.pop(k)
+            load_net[k[7:]] = load_net.pop(k)
     model.load_state_dict(load_net, strict=True)
     model.eval()
     model = model.to(device)
